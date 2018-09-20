@@ -4,5 +4,18 @@ spring:
   jackson:
     serialization:
       FAIL_ON_EMPTY_BEANS: false
+  data:
+    mongodb:
+      host: ${MONGO_DB_HOST:localhost}
+      port: ${MONGO_DB_PORT:27017}
+      driverClassName: com.mongodb.Mongo
+      database: friendmgmt
+      repositories:
+        enabled: true
 server:
   port: ${APPLICATION_PORT:8092}
+application:
+  mongo:
+    collection:
+      person:
+        name: person

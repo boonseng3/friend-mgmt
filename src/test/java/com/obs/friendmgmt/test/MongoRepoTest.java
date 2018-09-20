@@ -1,5 +1,6 @@
 package com.obs.friendmgmt.test;
 
+import com.obs.friendmgmt.PersonRepo;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -38,6 +39,6 @@ import org.springframework.test.context.junit4.SpringRunner;
         TestDatabaseAutoConfiguration.class,
         TestEntityManagerAutoConfiguration.class,
         EmbeddedMongoAutoConfiguration.class})
-@ContextConfiguration(classes = {})
+@ContextConfiguration(classes = {PersonRepo.class})
 public abstract class MongoRepoTest {
 }

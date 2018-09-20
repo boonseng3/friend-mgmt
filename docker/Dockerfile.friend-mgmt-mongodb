@@ -1,0 +1,3 @@
+FROM mongo:3.4.7
+COPY friend-mgmt-mongodb-healthcheck.sh /home/obs/
+RUN chmod 755 /home/obs/friend-mgmt-mongodb-healthcheck.sh

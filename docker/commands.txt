@@ -1,0 +1,4 @@
+docker exec -it friend-mgmt-mongodb mongo
+
+use friendmgmt_test
+db.person.find()
