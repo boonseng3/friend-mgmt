@@ -34,8 +34,9 @@ public class PersonRepo {
         return mongoTemplate.findAll(Person.class, collectionName);
     }
 
-    public void save(Person obj) {
+    public Person save(Person obj) {
         mongoTemplate.save(obj, collectionName);
+        return obj;
     }
 
     public Optional<Person> findByEmail(String email) {

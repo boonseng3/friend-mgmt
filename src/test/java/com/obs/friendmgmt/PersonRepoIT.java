@@ -48,8 +48,7 @@ public class PersonRepoIT extends MongoRepoTest {
 
     @Test
     public void save() {
-        personRepo.save(expected1.setFriends(Arrays.asList("personAFriend1@email.com","personAFriend2@email.com")));
-        Person result = personRepo.findByEmail("person1@email.com").get();
+        Person result =  personRepo.save(expected1.setFriends(Arrays.asList("personAFriend1@email.com","personAFriend2@email.com")));
         assertThat(result).isEqualTo(expected1);
 
 
