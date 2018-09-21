@@ -22,12 +22,9 @@ public class Person {
     protected ObjectId id;
     @Indexed(name = "person_email_inx", unique = true, background = true)
     protected String email;
-    @Indexed(name = "person_friends_inx", background = true)
     protected List<String> friends;
     // list of emails that subscribe to this person for update
-    @Indexed(name = "person_subscribers_inx", background = true)
     protected List<String> subscribers;
     // list of emails that this person subscribed for update
-    @Indexed(name = "person_subscribed_inx", background = true)
     protected List<String> subscribed;
 }
