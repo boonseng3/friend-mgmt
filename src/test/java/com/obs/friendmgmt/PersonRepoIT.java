@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -52,11 +53,25 @@ public class PersonRepoIT extends MongoRepoTest {
         assertThat(result).isEqualTo(expected1);
 
 
-    } @Test
+    }
+
+    @Test
     public void findByEmail() {
         Person result = personRepo.findByEmail("person1@email.com").get();
         assertThat(result).isEqualTo(expected1);
 
 
+        result = personRepo.findByEmail("PERSON1@email.com").get();
+        assertThat(result).isEqualTo(expected1);
+
+
+        result = personRepo.findByEmail("Person1@email.com").get();
+        assertThat(result).isEqualTo(expected1);
+    }
+
+    @Test
+    public void findByEmailNotFound() {
+        Optional<Person> result = personRepo.findByEmail("1person1@email.com");
+        assertThat(result).isEmpty();
     }
 }

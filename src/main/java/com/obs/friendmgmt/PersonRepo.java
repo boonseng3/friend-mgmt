@@ -41,7 +41,9 @@ public class PersonRepo {
 
     public Optional<Person> findByEmail(String email) {
         Query query = new Query();
-        query.addCriteria(Criteria.where("email").is(email));
+
+        // Case insensitivity match
+        query.addCriteria(Criteria.where("email").regex(email, "i"));
         return Optional.ofNullable(mongoTemplate.findOne(query, Person.class, collectionName));
     }
 }
