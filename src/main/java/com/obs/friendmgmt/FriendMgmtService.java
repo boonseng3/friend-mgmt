@@ -3,13 +3,9 @@ package com.obs.friendmgmt;
 import com.obs.friendmgmt.exception.RecordNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,9 +15,9 @@ public class FriendMgmtService {
 
     /**
      * Add friend connections to each person in the connections list.
+     *
      * @param connections list of emails to add friend connection
      */
-    @Transactional
     public void addFriendConnection(List<String> connections) {
         connections.stream()
                 .forEach(currentEmail -> {
@@ -46,7 +42,7 @@ public class FriendMgmtService {
      * Return a list if there are any new items in the newList, otherwise empty.
      *
      * @param sourceList exisitng list
-     * @param newList new list to filter for duplicates
+     * @param newList    new list to filter for duplicates
      * @return filtered list
      */
     private Optional<List<String>> mergeFilterDuplicate(@NotNull List<String> sourceList, @NotNull List<String> newList) {
@@ -63,13 +59,44 @@ public class FriendMgmtService {
 
     /**
      * Return common friends among the list of person.
+     *
      * @param emails list of person email
      * @return list of common friends
      */
-    public List<String> getCommongFriendConnection(List<String> emails) {
+    public List<String> getCommonFriendConnection(List<String> emails) {
         return personRepo.findByEmail(emails)
-        .stream().map(Person::getFriends)
-        .reduce((strings, strings2) -> strings.stream().filter(s -> strings2.contains(s)).collect(Collectors.toList())).orElse(Collections.EMPTY_LIST);
+                .stream().map(Person::getFriends)
+                .reduce((strings, strings2) -> strings.stream().filter(s -> strings2.contains(s)).collect(Collectors.toList())).orElse(Collections.EMPTY_LIST);
+    }
+
+    /**
+     * Update the requestor as subscribed to the target and target as having requestor as subscribers.
+     * @param requestor
+     * @param target
+     */
+    public void subscribeForUpdates(String requestor, String target) {
+
+        // Update subscribed relationship
+        Person requestorRecord = personRepo.findByEmail(requestor)
+                .orElseGet(() -> personRepo.insert(new Person().setEmail(requestor)));
+
+        mergeFilterDuplicate(Optional.ofNullable(requestorRecord.getSubscribed()).orElse(new ArrayList<>(1)), Arrays.asList(target))
+                .ifPresent(newSubscribedSources -> {
+                    List<String> currentSubscribedSources = Optional.ofNullable(requestorRecord.getSubscribed()).orElse(new ArrayList<>(1));
+                    currentSubscribedSources.addAll(newSubscribedSources);
+                    personRepo.save(requestorRecord.setSubscribed(currentSubscribedSources));
+                });
+
+        // Update the subscribers relationship
+        Person targetRecord = personRepo.findByEmail(target)
+                .orElseGet(() -> personRepo.insert(new Person().setEmail(target)));
+
+        mergeFilterDuplicate(Optional.ofNullable(targetRecord.getSubscribers()).orElse(new ArrayList<>(1)), Arrays.asList(requestor))
+                .ifPresent(newSubscribers -> {
+                    List<String> currentSubscribers = Optional.ofNullable(targetRecord.getSubscribers()).orElse(new ArrayList<>(1));
+                    currentSubscribers.addAll(newSubscribers);
+                    personRepo.save(targetRecord.setSubscribers(currentSubscribers));
+                });
     }
 
 }

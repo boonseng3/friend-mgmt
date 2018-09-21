@@ -85,7 +85,7 @@ public class FriendMgmtControllerTest extends ControllerTest {
     }
 
     @Test
-    public void getCommandFriendConnection() throws Exception {
+    public void getCommanFriendConnection() throws Exception {
         ObjectNode request = objectMapper.createObjectNode();
         request.putArray("friends")
                 .add("person1@email.com")
@@ -98,11 +98,30 @@ public class FriendMgmtControllerTest extends ControllerTest {
                 .add("personB@email.com")
                 .add("personC@email.com");
 
-        Mockito.when(friendMgmtService.getCommongFriendConnection(Arrays.asList("person1@email.com","person2@email.com")))
+        Mockito.when(friendMgmtService.getCommonFriendConnection(Arrays.asList("person1@email.com","person2@email.com")))
                 .thenReturn(Arrays.asList("personB@email.com","personC@email.com"));
 
         mvc.perform(MockMvcRequestBuilders
                 .put("/friends/connections/common").content(objectMapper.writeValueAsString(request)).contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(content().json(objectMapper.writeValueAsString(expected)))
+                .andReturn();
+    }
+
+    @Test
+    public void subscribeForUpdates() throws Exception {
+        ObjectNode request = objectMapper.createObjectNode();
+        request.put("requestor","lisa@example.com")
+                .put("target","john@example.com");
+
+        ObjectNode expected = objectMapper.createObjectNode()
+                .put("success", true);
+
+        Mockito.doNothing().when(friendMgmtService).subscribeForUpdates("lisa@example.com","john@example.com");
+
+        mvc.perform(MockMvcRequestBuilders
+                .put("/friends/subscribe").content(objectMapper.writeValueAsString(request)).contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().json(objectMapper.writeValueAsString(expected)))

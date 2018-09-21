@@ -1,4 +1,4 @@
-package com.obs.friendmgmt;
+package com.obs.friendmgmt.dto;
 
 import lombok.*;
 import lombok.experimental.Accessors;
@@ -13,9 +13,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
-public class FriendConnectionDto implements Serializable {
+public class CommonFriendConnectionRequestDto implements Serializable {
     private List<String> friends;
-    private boolean success;
-    private int count;
-
 }

@@ -1,4 +1,4 @@
-package com.obs.friendmgmt;
+package com.obs.friendmgmt.dto;
 
 import lombok.*;
 import lombok.experimental.Accessors;
@@ -12,6 +12,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
-public class RequestFriendConnectionDto implements Serializable {
-    private String email;
+public class SuccessDto implements Serializable {
+    private boolean success;
 }

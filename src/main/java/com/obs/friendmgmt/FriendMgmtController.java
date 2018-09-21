@@ -1,5 +1,6 @@
 package com.obs.friendmgmt;
 
+import com.obs.friendmgmt.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,14 +31,19 @@ public class FriendMgmtController {
     }
 
     @PutMapping(value = "/connections", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public FriendConnectionDto getFriendConnection(@RequestBody RequestFriendConnectionDto obj) {
+    public FriendConnectionDto getFriendConnection(@RequestBody FriendConnectionRequestDto obj) {
         return mapFriendConnectionDto(friendMgmtService.getFriendConnection(obj.getEmail()), true);
     }
 
-
-
     @PutMapping(value = "/connections/common", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public FriendConnectionDto getCommonFriendConnection(@RequestBody RequestCommonFriendConnectionDto obj) {
-        return mapFriendConnectionDto(friendMgmtService.getCommongFriendConnection(obj.getFriends()), true);
+    public FriendConnectionDto getCommonFriendConnection(@RequestBody CommonFriendConnectionRequestDto obj) {
+        return mapFriendConnectionDto(friendMgmtService.getCommonFriendConnection(obj.getFriends()), true);
     }
+
+    @PutMapping(value = "/subscribe", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public SuccessDto subscribeForUpdates(@RequestBody SubscribeRequestDto obj) {
+        friendMgmtService.subscribeForUpdates(obj.getRequestor(), obj.getTarget());
+        return new SuccessDto().setSuccess(true);
+    }
+
 }

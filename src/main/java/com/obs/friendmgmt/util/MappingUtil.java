@@ -1,7 +1,7 @@
 package com.obs.friendmgmt.util;
 
-import com.obs.friendmgmt.FriendConnectionDto;
 import com.obs.friendmgmt.Person;
+import com.obs.friendmgmt.dto.FriendConnectionDto;
 
 import java.util.List;
 

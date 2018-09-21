@@ -1,10 +1,9 @@
-package com.obs.friendmgmt;
+package com.obs.friendmgmt.dto;
 
 import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.util.List;
 
 @Getter
 @Setter
@@ -13,6 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
-public class RequestCommonFriendConnectionDto implements Serializable {
-    private List<String> friends;
+public class FriendConnectionRequestDto implements Serializable {
+    private String email;
 }

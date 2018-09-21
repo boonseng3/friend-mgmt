@@ -156,7 +156,27 @@ public class FriendMgmtServiceTest {
                 .thenReturn(Arrays.asList(new Person().setEmail("person1@email.com").setFriends(Arrays.asList("friendA@email.com","friendB@email.com","friendC@email.com")),
                         new Person().setEmail("person2@email.com").setFriends(Arrays.asList("friendB@email.com","friendC@email.com","friendD@email.com"))));
 
-        List<String> result = friendMgmtService.getCommongFriendConnection(Arrays.asList("person1@email.com","person2@email.com"));
+        List<String> result = friendMgmtService.getCommonFriendConnection(Arrays.asList("person1@email.com","person2@email.com"));
         assertThat(result).containsExactly("friendB@email.com","friendC@email.com");
+    }
+
+    @Test
+    public void subscribeForupdates() {
+        Person record = new Person().setEmail("person1@email.com").setId(new ObjectId());
+        Person updatedRecord =  new Person().setId(record.getId()).setEmail("person1@email.com").setSubscribed( new ArrayList<>(Arrays.asList("person2@email.com")));
+
+        Person record2 = new Person().setEmail("person2@email.com").setId(new ObjectId());
+        Person updatedRecord2 =  new Person().setId(record2.getId()).setEmail("person2@email.com").setSubscribers( new ArrayList<>(Arrays.asList("person1@email.com")));
+
+        Mockito.when(personRepo.findByEmail(record.getEmail()))
+                .thenReturn(Optional.of(record));
+
+        Mockito.when(personRepo.findByEmail(record2.getEmail()))
+                .thenReturn(Optional.of(record2));
+
+
+        friendMgmtService.subscribeForUpdates("person1@email.com","person2@email.com");
+        Mockito. verify(personRepo, times(1)).save(updatedRecord);
+        Mockito. verify(personRepo, times(1)).save(updatedRecord2);
     }
 }

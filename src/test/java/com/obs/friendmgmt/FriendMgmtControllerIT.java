@@ -2,6 +2,8 @@ package com.obs.friendmgmt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.obs.friendmgmt.dto.FriendConnectionDto;
+import com.obs.friendmgmt.dto.SuccessDto;
 import com.obs.friendmgmt.exception.ErrorMessageDto;
 import com.obs.friendmgmt.test.ControllerIT;
 import lombok.extern.slf4j.Slf4j;
@@ -162,5 +164,21 @@ public class FriendMgmtControllerIT extends ControllerIT {
         assertThat(getResponseEntity.getBody()).hasFieldOrPropertyWithValue("success", true)
                 .hasFieldOrPropertyWithValue("count", 3);
         assertThat(getResponseEntity.getBody().getFriends()).containsExactly("person1@example.com", "person4@example.com", "person5@example.com");
+    }
+
+    @Test
+    public void subscribeForUpdates() throws Exception {
+        Map<String, Object> request = new HashMap<>();
+        request.put("requestor", "person1@example.com");
+        request.put("target", "person2@example.com");
+        HttpHeaders requestHeaders = new HttpHeaders();
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity(request, requestHeaders);
+
+        ResponseEntity<SuccessDto> getResponseEntity = restTemplate.exchange("/friends/subscribe", HttpMethod.PUT, requestEntity, new ParameterizedTypeReference<SuccessDto>() {
+        });
+        assertThat(getResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(getResponseEntity.getBody()).hasFieldOrPropertyWithValue("success", true);
+        assertThat(personRepo.findByEmail( "person1@example.com").get().getSubscribed()).containsExactly("person2@example.com");
+        assertThat(personRepo.findByEmail( "person2@example.com").get().getSubscribers()).containsExactly("person1@example.com");
     }
 }
