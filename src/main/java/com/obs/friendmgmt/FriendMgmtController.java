@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.stream.Collectors;
+import static com.obs.friendmgmt.util.MappingUtil.mapFriendConnectionDto;
 
 @RestController
 @RequestMapping(value = "/friends")
@@ -21,16 +21,16 @@ public class FriendMgmtController {
     public SuccessDto createFriendConnection(@RequestBody FriendConnectionDto obj) {
 
         try {
-            obj.getFriends().stream()
-                    .forEach(email -> {
-                        friendMgmtService.addFriendConnection(email, obj.getFriends()
-                                .stream().filter(s -> !s.equalsIgnoreCase(email)).collect(Collectors.toList())
-                        );
-                    });
+            friendMgmtService.addFriendConnection(obj.getFriends());
             return new SuccessDto().setSuccess(true);
         } catch (Exception e) {
             log.error("Exception adding connection", e);
             return new SuccessDto();
         }
+    }
+
+    @PutMapping(value = "/connections", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public FriendConnectionDto getFriendConnection(@RequestBody RequestFriendConnectionDto obj) {
+        return mapFriendConnectionDto(friendMgmtService.getFriendConnection(obj.getEmail()), true);
     }
 }

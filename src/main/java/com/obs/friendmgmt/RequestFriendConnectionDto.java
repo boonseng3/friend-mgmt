@@ -4,7 +4,6 @@ import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.util.List;
 
 @Getter
 @Setter
@@ -13,9 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
-public class FriendConnectionDto implements Serializable {
-    private List<String> friends;
-    private boolean success;
-    private int count;
-
+public class RequestFriendConnectionDto implements Serializable {
+    private String email;
 }

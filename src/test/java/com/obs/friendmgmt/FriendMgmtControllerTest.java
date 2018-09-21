@@ -52,14 +52,34 @@ public class FriendMgmtControllerTest extends ControllerTest {
         ObjectNode expected = objectMapper.createObjectNode()
                 .put("success", true);
 
-        Mockito.when(friendMgmtService.addFriendConnection("andy@example.com", new ArrayList(Arrays.asList("john@example.com"))))
-                .thenReturn(new Person().setEmail("andy@example.com").setFriends(new ArrayList(Arrays.asList("john@example.com"))));
-        Mockito.when(friendMgmtService.addFriendConnection("john@example.com", new ArrayList(Arrays.asList("andy@example.com"))))
-                .thenReturn(new Person().setEmail("john@example.com").setFriends(new ArrayList(Arrays.asList("andy  @example.com"))));
+        Mockito.doNothing().when(friendMgmtService).addFriendConnection(new ArrayList(Arrays.asList("andy@example.com", "john@example.com")));
 
         mvc.perform(MockMvcRequestBuilders
                 .post("/friends/connections").content(objectMapper.writeValueAsString(request)).contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(status().isCreated())
+                .andDo(print())
+                .andExpect(content().json(objectMapper.writeValueAsString(expected)))
+                .andReturn();
+
+    }
+
+    @Test
+    public void getFriendConnection() throws Exception {
+        ObjectNode request = objectMapper.createObjectNode();
+        request.put("email", "andy@example.com");
+
+        ObjectNode expected = objectMapper.createObjectNode()
+                .put("success", true)
+                .put("count", 1);
+        expected.putArray("friends")
+                .add("john@example.com");
+
+        Mockito.when(friendMgmtService.getFriendConnection("andy@example.com"))
+                .thenReturn(new Person().setEmail("andy@example.com").setFriends(new ArrayList(Arrays.asList("john@example.com"))));
+
+        mvc.perform(MockMvcRequestBuilders
+                .put("/friends/connections").content(objectMapper.writeValueAsString(request)).contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().json(objectMapper.writeValueAsString(expected)))
                 .andReturn();
