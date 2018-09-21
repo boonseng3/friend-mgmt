@@ -12,6 +12,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -33,6 +34,31 @@ public class FriendMgmtControllerIT extends ControllerIT {
     public void before() {
         personRepo.deleteAll();
         personRepo.insert(new Person().setEmail("peter@example.com"));
+
+        // setup some data
+        ObjectNode request = objectMapper.createObjectNode();
+        request.withArray("friends")
+                .add("person1@example.com")
+                .add("person2@example.com")
+                .add("person3@example.com")
+                .add("person4@example.com");
+
+        ResponseEntity<SuccessDto> responseEntity = restTemplate.postForEntity("/friends/connections", request, SuccessDto.class);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        request = objectMapper.createObjectNode();
+        request.withArray("friends")
+                .add("person2@example.com")
+                .add("person5@example.com");
+        responseEntity = restTemplate.postForEntity("/friends/connections", request, SuccessDto.class);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        request = objectMapper.createObjectNode();
+        request.withArray("friends")
+                .add("person3@example.com")
+                .add("person5@example.com");
+        responseEntity = restTemplate.postForEntity("/friends/connections", request, SuccessDto.class);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     }
 
     @Test
@@ -107,9 +133,34 @@ public class FriendMgmtControllerIT extends ControllerIT {
         ResponseEntity<ErrorMessageDto> getResponseEntity = restTemplate.exchange("/friends/connections", HttpMethod.PUT, requestEntity, new ParameterizedTypeReference<ErrorMessageDto>() {
         });
         assertThat(getResponseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        System.out.println("getResponseEntity.getBody() = " + getResponseEntity.getBody());
         assertThat(getResponseEntity.getBody()).hasFieldOrPropertyWithValue("message", "Email not found");
+    }
 
 
+    @Test
+    public void getCommonFriendConnection() throws Exception {
+        Map<String, Object> getRequest = new HashMap<>();
+        getRequest.put("friends", Arrays.asList("person1@example.com","person2@example.com"));
+        HttpHeaders requestHeaders = new HttpHeaders();
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity(getRequest, requestHeaders);
+
+        ResponseEntity<FriendConnectionDto> getResponseEntity = restTemplate.exchange("/friends/connections/common", HttpMethod.PUT, requestEntity, new ParameterizedTypeReference<FriendConnectionDto>() {
+        });
+        assertThat(getResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(getResponseEntity.getBody()).hasFieldOrPropertyWithValue("success", true)
+                .hasFieldOrPropertyWithValue("count", 2);
+        assertThat(getResponseEntity.getBody().getFriends()).containsExactly("person3@example.com", "person4@example.com");
+
+        getRequest = new HashMap<>();
+        getRequest.put("friends", Arrays.asList("person2@example.com","person3@example.com"));
+        requestHeaders = new HttpHeaders();
+        requestEntity = new HttpEntity(getRequest, requestHeaders);
+
+        getResponseEntity = restTemplate.exchange("/friends/connections/common", HttpMethod.PUT, requestEntity, new ParameterizedTypeReference<FriendConnectionDto>() {
+        });
+        assertThat(getResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(getResponseEntity.getBody()).hasFieldOrPropertyWithValue("success", true)
+                .hasFieldOrPropertyWithValue("count", 3);
+        assertThat(getResponseEntity.getBody().getFriends()).containsExactly("person1@example.com", "person4@example.com", "person5@example.com");
     }
 }

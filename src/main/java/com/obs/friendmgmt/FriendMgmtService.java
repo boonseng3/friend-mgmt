@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -58,6 +59,17 @@ public class FriendMgmtService {
         // Create the person if the email does not exist.
         return personRepo.findByEmail(email).orElseThrow(() -> new RecordNotFoundException("Email not found"));
 
+    }
+
+    /**
+     * Return common friends among the list of person.
+     * @param emails list of person email
+     * @return list of common friends
+     */
+    public List<String> getCommongFriendConnection(List<String> emails) {
+        return personRepo.findByEmail(emails)
+        .stream().map(Person::getFriends)
+        .reduce((strings, strings2) -> strings.stream().filter(s -> strings2.contains(s)).collect(Collectors.toList())).orElse(Collections.EMPTY_LIST);
     }
 
 }

@@ -33,4 +33,11 @@ public class FriendMgmtController {
     public FriendConnectionDto getFriendConnection(@RequestBody RequestFriendConnectionDto obj) {
         return mapFriendConnectionDto(friendMgmtService.getFriendConnection(obj.getEmail()), true);
     }
+
+
+
+    @PutMapping(value = "/connections/common", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public FriendConnectionDto getCommonFriendConnection(@RequestBody RequestCommonFriendConnectionDto obj) {
+        return mapFriendConnectionDto(friendMgmtService.getCommongFriendConnection(obj.getFriends()), true);
+    }
 }

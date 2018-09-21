@@ -11,6 +11,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -147,5 +148,15 @@ public class FriendMgmtServiceTest {
         assertThat(result.getFriends())
                 .containsExactly("person1Friend1@email.com", "person1Friend2@email.com");
 
+    }
+
+    @Test
+    public void getCommongFriendConnection() {
+        Mockito.when(personRepo.findByEmail(Arrays.asList("person1@email.com","person2@email.com")))
+                .thenReturn(Arrays.asList(new Person().setEmail("person1@email.com").setFriends(Arrays.asList("friendA@email.com","friendB@email.com","friendC@email.com")),
+                        new Person().setEmail("person2@email.com").setFriends(Arrays.asList("friendB@email.com","friendC@email.com","friendD@email.com"))));
+
+        List<String> result = friendMgmtService.getCommongFriendConnection(Arrays.asList("person1@email.com","person2@email.com"));
+        assertThat(result).containsExactly("friendB@email.com","friendC@email.com");
     }
 }

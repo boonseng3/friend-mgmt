@@ -60,7 +60,6 @@ public class FriendMgmtControllerTest extends ControllerTest {
                 .andDo(print())
                 .andExpect(content().json(objectMapper.writeValueAsString(expected)))
                 .andReturn();
-
     }
 
     @Test
@@ -83,6 +82,30 @@ public class FriendMgmtControllerTest extends ControllerTest {
                 .andDo(print())
                 .andExpect(content().json(objectMapper.writeValueAsString(expected)))
                 .andReturn();
+    }
 
+    @Test
+    public void getCommandFriendConnection() throws Exception {
+        ObjectNode request = objectMapper.createObjectNode();
+        request.putArray("friends")
+                .add("person1@email.com")
+                .add("person2@email.com");
+
+        ObjectNode expected = objectMapper.createObjectNode()
+                .put("success", true)
+                .put("count", 2);
+        expected.putArray("friends")
+                .add("personB@email.com")
+                .add("personC@email.com");
+
+        Mockito.when(friendMgmtService.getCommongFriendConnection(Arrays.asList("person1@email.com","person2@email.com")))
+                .thenReturn(Arrays.asList("personB@email.com","personC@email.com"));
+
+        mvc.perform(MockMvcRequestBuilders
+                .put("/friends/connections/common").content(objectMapper.writeValueAsString(request)).contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(content().json(objectMapper.writeValueAsString(expected)))
+                .andReturn();
     }
 }

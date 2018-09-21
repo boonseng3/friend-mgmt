@@ -6,7 +6,9 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,6 +17,7 @@ public class PersonRepoIT extends MongoRepoTest {
     PersonRepo personRepo;
 
     private Person expected1 = null;
+    private Person expected2 = null;
 
     @Before
     public void before() {
@@ -22,6 +25,10 @@ public class PersonRepoIT extends MongoRepoTest {
 
         expected1 = new Person().setEmail("person1@email.com");
         expected1.setId(personRepo.insert(expected1).getId());
+
+
+        expected2 = new Person().setEmail("person2@email.com");
+        expected2.setId(personRepo.insert(expected2).getId());
     }
 
     @Test
@@ -44,7 +51,7 @@ public class PersonRepoIT extends MongoRepoTest {
     @Test
     public void findAll() {
         assertThat(personRepo.findAll())
-        .containsExactly(expected1);
+        .containsExactly(expected1, expected2);
     }
 
     @Test
@@ -73,5 +80,12 @@ public class PersonRepoIT extends MongoRepoTest {
     public void findByEmailNotFound() {
         Optional<Person> result = personRepo.findByEmail("1person1@email.com");
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void findByEmails() {
+        List<Person> result = personRepo.findByEmail(Arrays.asList(expected1.getEmail(), expected2.getEmail(), UUID.randomUUID().toString()));
+        assertThat(result)
+                .containsExactly(expected1, expected2);
     }
 }
