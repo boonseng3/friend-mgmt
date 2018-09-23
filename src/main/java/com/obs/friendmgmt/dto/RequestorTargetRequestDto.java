@@ -12,7 +12,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
-public class SubscribeRequestDto implements Serializable {
+public class RequestorTargetRequestDto implements Serializable {
     private String requestor;
     private String target;
 }

@@ -127,4 +127,23 @@ public class FriendMgmtControllerTest extends ControllerTest {
                 .andExpect(content().json(objectMapper.writeValueAsString(expected)))
                 .andReturn();
     }
+
+    @Test
+    public void blockForUpdates() throws Exception {
+        ObjectNode request = objectMapper.createObjectNode();
+        request.put("requestor","andy@example.com")
+                .put("target","john@example.com");
+
+        ObjectNode expected = objectMapper.createObjectNode()
+                .put("success", true);
+
+        Mockito.doNothing().when(friendMgmtService).block("andy@example.com","john@example.com");
+
+        mvc.perform(MockMvcRequestBuilders
+                .put("/friends/block").content(objectMapper.writeValueAsString(request)).contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(content().json(objectMapper.writeValueAsString(expected)))
+                .andReturn();
+    }
 }

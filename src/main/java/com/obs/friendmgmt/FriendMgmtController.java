@@ -41,8 +41,14 @@ public class FriendMgmtController {
     }
 
     @PutMapping(value = "/subscribe", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public SuccessDto subscribeForUpdates(@RequestBody SubscribeRequestDto obj) {
+    public SuccessDto subscribeForUpdates(@RequestBody RequestorTargetRequestDto obj) {
         friendMgmtService.subscribeForUpdates(obj.getRequestor(), obj.getTarget());
+        return new SuccessDto().setSuccess(true);
+    }
+
+    @PutMapping(value = "/block", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public SuccessDto block(@RequestBody RequestorTargetRequestDto obj) {
+        friendMgmtService.block(obj.getRequestor(), obj.getTarget());
         return new SuccessDto().setSuccess(true);
     }
 

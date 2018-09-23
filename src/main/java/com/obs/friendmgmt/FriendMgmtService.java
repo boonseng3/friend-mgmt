@@ -31,8 +31,24 @@ public class FriendMgmtService {
                     mergeFilterDuplicate(Optional.ofNullable(record.getFriends()).orElse(new ArrayList<>(friends.size())), friends)
                             .ifPresent(newFriends -> {
                                 List<String> currentFriends = Optional.ofNullable(record.getFriends()).orElse(new ArrayList<>(friends.size()));
-                                currentFriends.addAll(newFriends);
-                                personRepo.save(record.setFriends(currentFriends));
+
+                                // need to check block list, to prevent new friend connection to the person if blocked.
+                                Optional.ofNullable(record.getBlocked()).ifPresent(blocks -> {
+                                    newFriends.removeAll(blocks);
+                                });
+
+                                // need to check if the target also block the requestor hence prevent friend connection
+                               List<String> updatedNewFriends =  newFriends.stream()
+                                        .filter(target -> !Optional.ofNullable(personRepo.findByEmail(target)
+                                                .orElseGet(() -> personRepo.insert(new Person().setEmail(target)))
+                                        .getBlocked()).orElse(new ArrayList<>()).contains(currentEmail))
+                                .collect(Collectors.toList());
+
+                                if(!updatedNewFriends.isEmpty()){
+                                    currentFriends.addAll(updatedNewFriends);
+                                    personRepo.save(record.setFriends(currentFriends));
+                                }
+
                             });
                 });
 
@@ -71,6 +87,7 @@ public class FriendMgmtService {
 
     /**
      * Update the requestor as subscribed to the target and target as having requestor as subscribers.
+     *
      * @param requestor
      * @param target
      */
@@ -99,4 +116,36 @@ public class FriendMgmtService {
                 });
     }
 
+    /**
+     * Update the requestor block list and remove the subscribe/subscriber relationship with target.
+     * @param requestor
+     * @param target
+     */
+    public void block(String requestor, String target) {
+        // add to blocked list
+        Person requestorRecord = personRepo.findByEmail(requestor)
+                .orElseGet(() -> personRepo.insert(new Person().setEmail(requestor)));
+
+        mergeFilterDuplicate(Optional.ofNullable(requestorRecord.getBlocked()).orElse(new ArrayList<>(1)), Arrays.asList(target))
+                .ifPresent(newBlocked -> {
+                    List<String> currentBlocked = Optional.ofNullable(requestorRecord.getBlocked()).orElse(new ArrayList<>(1));
+                    currentBlocked.addAll(newBlocked);
+                    personRepo.save(requestorRecord.setBlocked(currentBlocked));
+                });
+
+        // remove subscribed/subscriber relationship
+        Person subscribeRecord = personRepo.findByEmail(requestor).get();
+        Optional.ofNullable(subscribeRecord.getSubscribed()).filter(strings -> strings.remove(target))
+                .ifPresent(strings -> personRepo.save(subscribeRecord));
+//        if(subscribeRecord.getSubscribed().remove(target)){
+//            personRepo.save(subscribeRecord);
+//        }
+        Person subscriberRecord = personRepo.findByEmail(target).get();
+        Optional.ofNullable(subscriberRecord.getSubscribers()).filter(strings -> strings.remove(requestor))
+                .ifPresent(strings -> personRepo.save(subscriberRecord));
+
+//        if(subscriberRecord.getSubscribers().remove(requestor)){
+//            personRepo.save(subscriberRecord);
+//        }
+    }
 }

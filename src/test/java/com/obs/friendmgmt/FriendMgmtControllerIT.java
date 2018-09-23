@@ -47,6 +47,10 @@ public class FriendMgmtControllerIT extends ControllerIT {
 
         ResponseEntity<SuccessDto> responseEntity = restTemplate.postForEntity("/friends/connections", request, SuccessDto.class);
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(personRepo.findByEmail("person1@example.com").get().getFriends()).containsExactly("person2@example.com", "person3@example.com", "person4@example.com");
+        assertThat(personRepo.findByEmail("person2@example.com").get().getFriends()).containsExactly("person1@example.com", "person3@example.com", "person4@example.com");
+        assertThat(personRepo.findByEmail("person3@example.com").get().getFriends()).containsExactly("person1@example.com", "person2@example.com", "person4@example.com");
+        assertThat(personRepo.findByEmail("person4@example.com").get().getFriends()).containsExactly("person1@example.com", "person2@example.com", "person3@example.com");
 
         request = objectMapper.createObjectNode();
         request.withArray("friends")
@@ -54,6 +58,8 @@ public class FriendMgmtControllerIT extends ControllerIT {
                 .add("person5@example.com");
         responseEntity = restTemplate.postForEntity("/friends/connections", request, SuccessDto.class);
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(personRepo.findByEmail("person2@example.com").get().getFriends()).containsExactly("person1@example.com", "person3@example.com", "person4@example.com", "person5@example.com");
+        assertThat(personRepo.findByEmail("person5@example.com").get().getFriends()).containsExactly("person2@example.com");
 
         request = objectMapper.createObjectNode();
         request.withArray("friends")
@@ -61,6 +67,8 @@ public class FriendMgmtControllerIT extends ControllerIT {
                 .add("person5@example.com");
         responseEntity = restTemplate.postForEntity("/friends/connections", request, SuccessDto.class);
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(personRepo.findByEmail("person3@example.com").get().getFriends()).containsExactly("person1@example.com", "person2@example.com", "person4@example.com", "person5@example.com");
+        assertThat(personRepo.findByEmail("person5@example.com").get().getFriends()).containsExactly("person2@example.com", "person3@example.com");
     }
 
     @Test
@@ -73,6 +81,8 @@ public class FriendMgmtControllerIT extends ControllerIT {
         ResponseEntity<SuccessDto> responseEntity = restTemplate.postForEntity("/friends/connections", request, SuccessDto.class);
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(responseEntity.getBody()).hasFieldOrPropertyWithValue("success", true);
+        assertThat(personRepo.findByEmail("andy@example.com").get().getFriends()).containsExactly("john@example.com");
+        assertThat(personRepo.findByEmail("john@example.com").get().getFriends()).containsExactly("andy@example.com");
     }
 
     @Test
@@ -128,7 +138,7 @@ public class FriendMgmtControllerIT extends ControllerIT {
     @Test
     public void getFriendConnectionNotFound() throws Exception {
         Map<String, Object> getRequest = new HashMap<>();
-        getRequest.put("email", UUID.randomUUID().toString()+"@example.com");
+        getRequest.put("email", UUID.randomUUID().toString() + "@example.com");
         HttpHeaders requestHeaders = new HttpHeaders();
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity(getRequest, requestHeaders);
 
@@ -142,7 +152,7 @@ public class FriendMgmtControllerIT extends ControllerIT {
     @Test
     public void getCommonFriendConnection() throws Exception {
         Map<String, Object> getRequest = new HashMap<>();
-        getRequest.put("friends", Arrays.asList("person1@example.com","person2@example.com"));
+        getRequest.put("friends", Arrays.asList("person1@example.com", "person2@example.com"));
         HttpHeaders requestHeaders = new HttpHeaders();
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity(getRequest, requestHeaders);
 
@@ -154,7 +164,7 @@ public class FriendMgmtControllerIT extends ControllerIT {
         assertThat(getResponseEntity.getBody().getFriends()).containsExactly("person3@example.com", "person4@example.com");
 
         getRequest = new HashMap<>();
-        getRequest.put("friends", Arrays.asList("person2@example.com","person3@example.com"));
+        getRequest.put("friends", Arrays.asList("person2@example.com", "person3@example.com"));
         requestHeaders = new HttpHeaders();
         requestEntity = new HttpEntity(getRequest, requestHeaders);
 
@@ -178,7 +188,81 @@ public class FriendMgmtControllerIT extends ControllerIT {
         });
         assertThat(getResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(getResponseEntity.getBody()).hasFieldOrPropertyWithValue("success", true);
-        assertThat(personRepo.findByEmail( "person1@example.com").get().getSubscribed()).containsExactly("person2@example.com");
-        assertThat(personRepo.findByEmail( "person2@example.com").get().getSubscribers()).containsExactly("person1@example.com");
+        assertThat(personRepo.findByEmail("person1@example.com").get().getSubscribed()).containsExactly("person2@example.com");
+        assertThat(personRepo.findByEmail("person2@example.com").get().getSubscribers()).containsExactly("person1@example.com");
+    }
+
+    @Test
+    public void block() throws Exception {
+        Map<String, Object> request = new HashMap<>();
+        request.put("requestor", "person3@example.com");
+        request.put("target", "person5@example.com");
+        HttpHeaders requestHeaders = new HttpHeaders();
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity(request, requestHeaders);
+
+        ResponseEntity<SuccessDto> getResponseEntity = restTemplate.exchange("/friends/subscribe", HttpMethod.PUT, requestEntity, new ParameterizedTypeReference<SuccessDto>() {
+        });
+        assertThat(getResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(getResponseEntity.getBody()).hasFieldOrPropertyWithValue("success", true);
+        assertThat(personRepo.findByEmail("person3@example.com").get().getSubscribed()).containsExactly("person5@example.com");
+        assertThat(personRepo.findByEmail("person5@example.com").get().getSubscribers()).containsExactly("person3@example.com");
+
+        getResponseEntity = restTemplate.exchange("/friends/block", HttpMethod.PUT, requestEntity, new ParameterizedTypeReference<SuccessDto>() {
+        });
+        assertThat(getResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(getResponseEntity.getBody()).hasFieldOrPropertyWithValue("success", true);
+        assertThat(personRepo.findByEmail("person3@example.com").get().getSubscribed()).doesNotContain("person5@example.com");
+        assertThat(personRepo.findByEmail("person5@example.com").get().getSubscribers()).doesNotContain("person3@example.com");
+    }
+
+    @Test
+    public void blockAdd() throws Exception {
+        Map<String, Object> request = new HashMap<>();
+        request.put("requestor", "person1@example.com");
+        request.put("target", "person5@example.com");
+        HttpHeaders requestHeaders = new HttpHeaders();
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity(request, requestHeaders);
+
+        ResponseEntity<SuccessDto> getResponseEntity = restTemplate.exchange("/friends/block", HttpMethod.PUT, requestEntity, new ParameterizedTypeReference<SuccessDto>() {
+        });
+        assertThat(getResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(getResponseEntity.getBody()).hasFieldOrPropertyWithValue("success", true);
+        assertThat(personRepo.findByEmail("person1@example.com").get().getBlocked()).containsExactly("person5@example.com");
+        assertThat(personRepo.findByEmail("person1@example.com").get().getFriends()).doesNotContain("person5@example.com");
+        assertThat(personRepo.findByEmail("person5@example.com").get().getBlocked()).isNull();
+        assertThat(personRepo.findByEmail("person5@example.com").get().getFriends()).doesNotContain("person1@example.com");
+
+        // create friend connection
+        ObjectNode requestFriend = objectMapper.createObjectNode();
+        requestFriend.withArray("friends")
+                .add("person1@example.com")
+                .add("person5@example.com");
+
+        requestEntity = new HttpEntity(requestFriend, requestHeaders);
+
+        ResponseEntity<SuccessDto> responseEntity = restTemplate.exchange("/friends/connections", HttpMethod.POST, requestEntity, new ParameterizedTypeReference<SuccessDto>() {
+        });
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(responseEntity.getBody()).hasFieldOrPropertyWithValue("success", true);
+        assertThat(personRepo.findByEmail("person1@example.com").get().getBlocked()).containsExactly("person5@example.com");
+        assertThat(personRepo.findByEmail("person1@example.com").get().getFriends()).doesNotContain("person5@example.com");
+        assertThat(personRepo.findByEmail("person5@example.com").get().getBlocked()).isNull();
+        assertThat(personRepo.findByEmail("person5@example.com").get().getFriends()).doesNotContain("person1@example.com");
+
+        requestFriend = objectMapper.createObjectNode();
+        requestFriend.withArray("friends")
+                .add("person5@example.com")
+                .add("person1@example.com");
+
+        requestEntity = new HttpEntity(requestFriend, requestHeaders);
+
+        responseEntity = restTemplate.exchange("/friends/connections", HttpMethod.POST, requestEntity, new ParameterizedTypeReference<SuccessDto>() {
+        });
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(responseEntity.getBody()).hasFieldOrPropertyWithValue("success", true);
+        assertThat(personRepo.findByEmail("person1@example.com").get().getBlocked()).containsExactly("person5@example.com");
+        assertThat(personRepo.findByEmail("person1@example.com").get().getFriends()).doesNotContain("person5@example.com");
+        assertThat(personRepo.findByEmail("person5@example.com").get().getBlocked()).isNull();
+        assertThat(personRepo.findByEmail("person5@example.com").get().getFriends()).doesNotContain("person1@example.com");
     }
 }

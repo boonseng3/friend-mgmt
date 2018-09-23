@@ -27,4 +27,6 @@ public class Person {
     protected List<String> subscribers;
     // list of emails that this person subscribed for update
     protected List<String> subscribed;
+    // list of emails that this person blocks
+    protected List<String> blocked;
 }
