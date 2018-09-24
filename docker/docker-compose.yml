@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.friend-mgmt-mongodb
+    image: heavenhell81/friend-mgmt-mongodb:latest
     environment:
       - MONGO_DATA_DIR=/data/db
       - MONGO_LOG_DIR=/dev/null
@@ -20,6 +21,29 @@ services:
       - friend-mgmt-network
     healthcheck:
       test: ["CMD", "/home/obs/friend-mgmt-mongodb-healthcheck.sh"]
+      # first run interval seconds after the container is started, and then again interval seconds after each previous check completes
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      # start period provides initialization time for containers that need time to bootstrap.
+      start_period: 10s
+  friend-mgmt-api:
+    container_name: friend-mgmt-api
+    build:
+      context: .
+      dockerfile: Dockerfile.friend-mgmt-api
+    image: heavenhell81/friend-mgmt:latest
+    entrypoint: ["/bin/bash",  "/home/obs/friend-mgmt-api-entrypoint.sh"]
+    environment:
+      APPLICATION_PORT: 8092
+      MONGO_DB_HOST: friend-mgmt-mongodb
+      MONGO_DB_PORT: 27017
+    ports:
+    - "8092:8092"
+    networks:
+    - friend-mgmt-network
+    healthcheck:
+      test: ["CMD", "/home/obs/friend-mgmt-api-healthcheck.sh"]
       # first run interval seconds after the container is started, and then again interval seconds after each previous check completes
       interval: 30s
       timeout: 10s

@@ -1,0 +1,8 @@
+FROM heavenhell81/ubuntu1604_openjdk8:20170418
+COPY binaries/friend-mgmt-1.0-SNAPSHOT.jar /home/obs/
+COPY friend-mgmt-api-entrypoint.sh /home/obs/
+COPY friend-mgmt-api-healthcheck.sh /home/obs/
+RUN mkdir /home/obs/logs
+RUN chmod 755 /home/obs/logs
+RUN chmod 755 /home/obs/friend-mgmt-api-entrypoint.sh
+RUN chmod 755 /home/obs/friend-mgmt-api-healthcheck.sh
