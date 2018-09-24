@@ -4,15 +4,17 @@ import com.obs.friendmgmt.Person;
 import com.obs.friendmgmt.dto.BroadcastMessageResponseDto;
 import com.obs.friendmgmt.dto.FriendConnectionDto;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class MappingUtil {
 
     public static FriendConnectionDto mapFriendConnectionDto(Person person, boolean success) {
         return new FriendConnectionDto()
                 .setSuccess(success)
-                .setFriends(person.getFriends())
-                .setCount(person.getFriends().size());
+                .setFriends(Optional.ofNullable(person.getFriends()).orElseGet(() -> new ArrayList<>()))
+                .setCount(Optional.ofNullable(person.getFriends()).orElseGet(() -> new ArrayList<>()).size());
     }
 
     public static FriendConnectionDto mapFriendConnectionDto(List<String> emails, boolean success) {
