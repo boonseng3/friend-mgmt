@@ -9,7 +9,7 @@
  1. As a user, I need an API to retrieve all email addresses that can receive updates from an email address.
  
  ## Requirements for running the application
- 1. Docker 10.06.1-ce and above
+ 1. Docker 18.06.1-ce and above
  2. Docker Compose 1.22.0 and above
  
  ## Steps to deploy the application
