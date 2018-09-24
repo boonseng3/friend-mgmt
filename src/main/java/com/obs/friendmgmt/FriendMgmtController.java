@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import static com.obs.friendmgmt.util.MappingUtil.mapBroadcastMessageResponseDto;
 import static com.obs.friendmgmt.util.MappingUtil.mapFriendConnectionDto;
 
 @RestController
@@ -50,6 +51,11 @@ public class FriendMgmtController {
     public SuccessDto block(@RequestBody RequestorTargetRequestDto obj) {
         friendMgmtService.block(obj.getRequestor(), obj.getTarget());
         return new SuccessDto().setSuccess(true);
+    }
+
+    @PutMapping(value = "/broadcast", produces = {MediaType.APPLICATION_JSON_UTF8_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public BroadcastMessageResponseDto block(@RequestBody BroadcastMessageRequestDto obj) {
+        return mapBroadcastMessageResponseDto(friendMgmtService.getBroadcastList(obj.getSender()), true);
     }
 
 }

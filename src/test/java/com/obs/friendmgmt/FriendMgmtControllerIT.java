@@ -2,6 +2,7 @@ package com.obs.friendmgmt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.obs.friendmgmt.dto.BroadcastMessageResponseDto;
 import com.obs.friendmgmt.dto.FriendConnectionDto;
 import com.obs.friendmgmt.dto.SuccessDto;
 import com.obs.friendmgmt.exception.ErrorMessageDto;
@@ -264,5 +265,61 @@ public class FriendMgmtControllerIT extends ControllerIT {
         assertThat(personRepo.findByEmail("person1@example.com").get().getFriends()).doesNotContain("person5@example.com");
         assertThat(personRepo.findByEmail("person5@example.com").get().getBlocked()).isNull();
         assertThat(personRepo.findByEmail("person5@example.com").get().getFriends()).doesNotContain("person1@example.com");
+    }
+
+    @Test
+    public void broadcast() throws Exception {
+
+        // person3 subscribe to person 5
+        Map<String, Object> request = new HashMap<>();
+        request.put("requestor", "person3@example.com");
+        request.put("target", "person5@example.com");
+        HttpHeaders requestHeaders = new HttpHeaders();
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity(request, requestHeaders);
+
+        ResponseEntity<SuccessDto> getResponseEntity = restTemplate.exchange("/friends/subscribe", HttpMethod.PUT, requestEntity, new ParameterizedTypeReference<SuccessDto>() {
+        });
+        assertThat(getResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(getResponseEntity.getBody()).hasFieldOrPropertyWithValue("success", true);
+        assertThat(personRepo.findByEmail("person3@example.com").get().getSubscribed()).containsExactly("person5@example.com");
+        assertThat(personRepo.findByEmail("person5@example.com").get().getSubscribers()).containsExactly("person3@example.com");
+
+        Map<String, Object> broadcastRequest = new HashMap<>();
+        broadcastRequest.put("sender", "person5@example.com");
+        broadcastRequest.put("text", "test");
+        requestEntity = new HttpEntity(broadcastRequest, requestHeaders);
+
+        // verify person 5 subscribers contains only person 3
+        ResponseEntity<BroadcastMessageResponseDto> broadcastResponseEntity = restTemplate.exchange("/friends/broadcast", HttpMethod.PUT, requestEntity, new ParameterizedTypeReference<BroadcastMessageResponseDto>() {
+        });
+        assertThat(broadcastResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(broadcastResponseEntity.getBody()).hasFieldOrPropertyWithValue("success", true);
+        assertThat(broadcastResponseEntity.getBody().getRecipients()).containsExactly("person3@example.com");
+
+        // person 4 subscribe to person 5
+        request = new HashMap<>();
+        request.put("requestor", "person4@example.com");
+        request.put("target", "person5@example.com");
+        requestHeaders = new HttpHeaders();
+        requestEntity = new HttpEntity(request, requestHeaders);
+
+       getResponseEntity = restTemplate.exchange("/friends/subscribe", HttpMethod.PUT, requestEntity, new ParameterizedTypeReference<SuccessDto>() {
+        });
+        assertThat(getResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(getResponseEntity.getBody()).hasFieldOrPropertyWithValue("success", true);
+        assertThat(personRepo.findByEmail("person4@example.com").get().getSubscribed()).containsExactly("person5@example.com");
+        assertThat(personRepo.findByEmail("person5@example.com").get().getSubscribers()).containsExactly("person3@example.com","person4@example.com");
+
+        // verify person 5 subscribers contains only person 3, person 4
+        broadcastRequest = new HashMap<>();
+        broadcastRequest.put("sender", "person5@example.com");
+        broadcastRequest.put("text", "test");
+        requestEntity = new HttpEntity(broadcastRequest, requestHeaders);
+
+        broadcastResponseEntity = restTemplate.exchange("/friends/broadcast", HttpMethod.PUT, requestEntity, new ParameterizedTypeReference<BroadcastMessageResponseDto>() {
+        });
+        assertThat(broadcastResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(broadcastResponseEntity.getBody()).hasFieldOrPropertyWithValue("success", true);
+        assertThat(broadcastResponseEntity.getBody().getRecipients()).containsExactly("person3@example.com","person4@example.com");
     }
 }

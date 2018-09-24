@@ -137,15 +137,20 @@ public class FriendMgmtService {
         Person subscribeRecord = personRepo.findByEmail(requestor).get();
         Optional.ofNullable(subscribeRecord.getSubscribed()).filter(strings -> strings.remove(target))
                 .ifPresent(strings -> personRepo.save(subscribeRecord));
-//        if(subscribeRecord.getSubscribed().remove(target)){
-//            personRepo.save(subscribeRecord);
-//        }
         Person subscriberRecord = personRepo.findByEmail(target).get();
         Optional.ofNullable(subscriberRecord.getSubscribers()).filter(strings -> strings.remove(requestor))
                 .ifPresent(strings -> personRepo.save(subscriberRecord));
 
-//        if(subscriberRecord.getSubscribers().remove(requestor)){
-//            personRepo.save(subscriberRecord);
-//        }
+    }
+
+    /**
+     * Return the list of subscribers to this person.
+     * @param email
+     * @return
+     */
+    public List<String> getBroadcastList(String email) {
+        return personRepo.findByEmail(email)
+                .orElseGet(() -> personRepo.insert(new Person().setEmail(email))).getSubscribers();
+
     }
 }
